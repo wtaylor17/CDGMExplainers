@@ -1,4 +1,4 @@
-from explain.cf_example import HingeLossCFExplainer, DeepCounterfactualExplainer
+from explain.cf_example import AgnosticExplainer, GradientExplainer
 import torch
 from tqdm import tqdm
 import os
@@ -8,11 +8,15 @@ import pandas as pd
 from train_morphomnist_ae import Encoder, Decoder
 
 parser = ArgumentParser()
-parser.add_argument('--data-dir', type=str)
+parser.add_argument('--data-dir', type=str,
+                    help='directory with morpho-mnist .npy files')
+parser.add_argument('--model-dir', type=str,
+                    help='directory with .tar files of pretrained vae, bigan, classifier, and oracles')
 parser.add_argument('--seed', type=int, default=42)
-parser.add_argument('--weight', type=float, default=10.0)
-parser.add_argument('--steps', type=int, default=100)
-parser.add_argument('--train-codes', action="store_true")
+parser.add_argument('--weight', type=float, default=10.0,
+                    help='weight for squared loss in generative explainers (lambda)')
+parser.add_argument('--steps', type=int, default=200,
+                    help='number of gradient steps for generative explainers')
 parser.add_argument('--lr', type=float, default=0.01)
 
 
@@ -74,18 +78,20 @@ if __name__ == '__main__':
     }
     a_test_scaled["digit"] = test_digit
 
-    model_dict = torch.load('mnist-bigan-finetuned-mse.tar', map_location=device)
+    model_dict = torch.load(os.path.join(args.model_dir, 'mnist-bigan-finetuned-mse.tar'),
+                            map_location=device)
     E = model_dict['E']
     G = model_dict['G']
-    vae = torch.load('mnist-vae.tar', map_location=device)['vae']
-    clf = torch.load('mnist_clf.tar', map_location=device)['clf']
-    oracles = [torch.load(f'oracles/oracle-{i}.tar', map_location=device)['clf']
+    vae = torch.load(os.path.join(args.model_dir, 'mnist-vae.tar'), map_location=device)['vae']
+    clf = torch.load(os.path.join(args.model_dir, 'mnist_clf.tar'), map_location=device)['clf']
+    oracles = [torch.load(os.path.join(args.model_dir, 'oracles', f'oracle-{i}.tar'),
+                          map_location=device)['clf']
                for i in range(10)]
 
     from omnixai.explainers.vision import ContrastiveExplainer, CounterfactualExplainer
     from omnixai.data.image import Image
 
-    bigan_explainer = HingeLossCFExplainer(
+    bigan_explainer = GradientExplainer(
         E,
         G,
         clf,
@@ -94,8 +100,8 @@ if __name__ == '__main__':
         categorical_features=["digit"],
         features_to_ignore=["slant", "intensity"]
     )
-    bigan_agnostic = DeepCounterfactualExplainer(E, G, clf, "digit")
-    vae_explainer = HingeLossCFExplainer(
+    bigan_agnostic = AgnosticExplainer(E, G, clf, "digit")
+    vae_explainer = GradientExplainer(
         lambda *a: vae.encoder(*a)[0],
         vae.decoder,
         clf,
@@ -104,7 +110,7 @@ if __name__ == '__main__':
         categorical_features=["digit"],
         features_to_ignore=["slant", "intensity"]
     )
-    vae_agnostic = DeepCounterfactualExplainer(lambda *a: vae.encoder(*a)[0], vae.decoder, clf, "digit")
+    vae_agnostic = AgnosticExplainer(lambda *a: vae.encoder(*a)[0], vae.decoder, clf, "digit")
     contrastive_explainer = ContrastiveExplainer(
         clf,
         preprocess_function=lambda x_: x_.data.reshape((-1, 1, 28, 28))
@@ -167,7 +173,6 @@ if __name__ == '__main__':
             cf_label = clf(torch.from_numpy(counterfactual).float().to(device)).argmax(1).item()
         bigan_cf = bigan_explainer.explain(x, a_args, steps=args.steps,
                                            target_class=cf_label,
-                                           train_z=args.train_codes,
                                            lr=args.lr).reshape((1, 1, 28, 28))
         with torch.no_grad():
             bigan_agnostic_cf = bigan_agnostic.explain(x, a_args, cf_label)[0][0].reshape((1, 1, 28, 28))
@@ -175,7 +180,6 @@ if __name__ == '__main__':
 
         vae_cf = vae_explainer.explain(x, a_args, steps=args.steps,
                                        target_class=cf_label,
-                                       train_z=args.train_codes,
                                        lr=args.lr).reshape((1, 1, 28, 28))
 
         with torch.no_grad():

@@ -1,4 +1,4 @@
-from explain.cf_example import HingeLossCFExplainer, DeepCounterfactualExplainer
+from explain.cf_example import GradientExplainer, AgnosticExplainer
 import torch
 from tqdm import tqdm
 import os
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     from omnixai.explainers.vision import ContrastiveExplainer, CounterfactualExplainer
     from omnixai.data.image import Image
 
-    bigan_explainer = HingeLossCFExplainer(
+    bigan_explainer = GradientExplainer(
         E,
         G,
         clf,
@@ -79,8 +79,8 @@ if __name__ == '__main__':
         categorical_features=["digit"],
         features_to_ignore=["slant", "intensity"]
     )
-    bigan_agnostic = DeepCounterfactualExplainer(E, G, clf, "digit")
-    vae_explainer = HingeLossCFExplainer(
+    bigan_agnostic = AgnosticExplainer(E, G, clf, "digit")
+    vae_explainer = GradientExplainer(
         lambda *a: vae.encoder(*a)[0],
         vae.decoder,
         clf,
@@ -89,7 +89,7 @@ if __name__ == '__main__':
         categorical_features=["digit"],
         features_to_ignore=["slant", "intensity"]
     )
-    vae_agnostic = DeepCounterfactualExplainer(lambda *a: vae.encoder(*a)[0], vae.decoder, clf, "digit")
+    vae_agnostic = AgnosticExplainer(lambda *a: vae.encoder(*a)[0], vae.decoder, clf, "digit")
     contrastive_explainer = ContrastiveExplainer(
         clf,
         preprocess_function=lambda x_: x_.data.reshape((-1, 1, 28, 28))

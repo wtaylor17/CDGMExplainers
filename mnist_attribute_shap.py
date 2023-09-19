@@ -4,7 +4,7 @@ import os
 import shap
 import numpy as np
 from tqdm import tqdm
-import matplotlib.pyplot as plt
+
 
 parser = ArgumentParser()
 parser.add_argument('--data-dir', type=str,

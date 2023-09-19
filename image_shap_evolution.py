@@ -3,9 +3,18 @@ import os
 import shap
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import Normalize
+from matplotlib.cm import ScalarMappable
+from argparse import ArgumentParser
+
+
+parser = ArgumentParser()
+parser.add_argument('--data-dir', type=str)
+parser.add_argument('--output-dir', type=str)
 
 
 if __name__ == '__main__':
+    args = parser.parse_args()
     os.makedirs('image_shap_figures', exist_ok=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     x_train = torch.from_numpy(
@@ -25,9 +34,6 @@ if __name__ == '__main__':
     f = ShapClf().to(device)
     e = shap.GradientExplainer(f, background)
 
-    from matplotlib.colors import Normalize
-    from matplotlib.cm import ScalarMappable
-
     attr_vals = [-0.8, -0.5, 0, 0.5, 0.8]
 
     for model in ['bigan', 'vae']:
@@ -35,7 +41,7 @@ if __name__ == '__main__':
             for cls in range(10):
                 attr_tensors = []
                 for i in range(len(attr_vals)):
-                    cf_dir = os.path.join('mnist-displayed-cfs', str(cls), attribute)
+                    cf_dir = os.path.join(args.data_dir, str(cls), attribute)
                     v = attr_vals[i]
                     cf_arr = np.load(os.path.join(cf_dir, f'{model}_{v}.npy'))
                     i += 1
@@ -47,21 +53,18 @@ if __name__ == '__main__':
                 shap.image_plot(shap_values, imgs.detach().numpy().reshape((-1, 28, 28)),
                                 show=False)
 
-                from matplotlib.colors import Normalize
-                from matplotlib.cm import ScalarMappable
-
                 cbar_axes = plt.gcf().add_axes([0.11, 0.35, 0.001, 0.52])
                 plt.gcf().colorbar(mappable=ScalarMappable(Normalize(vmin=attr_vals[0], vmax=attr_vals[-1])),
                                    cax=cbar_axes, label=f'{attribute} value',
                                    ticks=[.8, 0.4, 0, -0.4, -.8])
-                cbar_axes.set_yticklabels(attr_vals)
+                cbar_axes.set_yticklabels(attr_vals, fontsize=14)
                 # plt.subplots_adjust(hspace=0.4, wspace=0.6, left=0.35, right=0.65)
                 plt.suptitle(
                     f"{attribute} evolution on class {cls} using {model}",
-                    fontsize=14)
+                    fontsize=18)
                 cbar_axes.yaxis.set_ticks_position('left')
                 cbar_axes.yaxis.set_label_position('left')
-                # plt.show()
-                plt.savefig(f'image_shap_figures/{cls}_{attribute}_{model}.png', bbox_inches='tight')
-                print(f'image_shap_figures/{cls}_{attribute}_{model}.png')
+                output_path = os.path.join(args.output_dir, f'{cls}_{attribute}_{model}.png')
+                plt.savefig(output_path, bbox_inches='tight')
+                print(output_path)
                 plt.close()

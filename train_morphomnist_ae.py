@@ -5,8 +5,8 @@ import numpy as np
 from argparse import ArgumentParser
 import os
 
-from image_scms.training_utils import init_weights
-from image_scms.training_utils import batchify
+from imagecfgen_bigan.training_utils import init_weights
+from imagecfgen_bigan.training_utils import batchify
 
 
 class Encoder(nn.Module):

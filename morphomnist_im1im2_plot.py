@@ -1,14 +1,20 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.stats import bootstrap
+from argparse import ArgumentParser
 
 
 def confidence_95(data):
     return np.mean(data), 1.96 * np.std(data) / np.sqrt(len(data))
 
 
+parser = ArgumentParser()
+parser.add_argument('--metric-csv', type=str,
+                    help='path to csv with im1/im2/oracle metric information')
+
+
 if __name__ == '__main__':
+    args = parser.parse_args()
     model_types = ['bigan',
                    'vae',
                    'bigan_agnostic',
@@ -30,7 +36,7 @@ if __name__ == '__main__':
     second_row_models = model_types[3:]
     second_row_model_names = model_display_names[3:]
 
-    df = pd.read_csv('morphomnist_cf_metrics_newest.csv')
+    df = pd.read_csv(args.metric_csv)
 
     im1_max, im2_max = 0, 0
     for c in range(10):

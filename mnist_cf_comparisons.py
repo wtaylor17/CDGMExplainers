@@ -8,10 +8,13 @@ import json
 import numpy as np
 from omnixai.explainers.vision import ContrastiveExplainer, CounterfactualExplainer
 from omnixai.data.image import Image
-from explain.cf_example import DeepCounterfactualExplainer, HingeLossCFExplainer
+from explain.cf_example import AgnosticExplainer, GradientExplainer
 
 parser = ArgumentParser()
-parser.add_argument('--data-dir', type=str, default='mnist-displayed-cfs')
+parser.add_argument('--data-dir', type=str,
+                    help='data dir with original digits used for paper figures (.npy files)')
+parser.add_argument('--model-dir', type=str,
+                    help='directory with .tar files of pretrained bigan/vae/classifier models')
 
 
 def gray_to_rgb(g: np.ndarray):
@@ -40,11 +43,11 @@ if __name__ == '__main__':
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    clf = torch.load('mnist_clf.tar', map_location='cpu')['clf']
+    clf = torch.load(os.path.join(args.model_dir, 'mnist_clf.tar'), map_location='cpu')['clf']
 
-    model_dict = torch.load('mnist-vae.tar', map_location='cpu')
+    model_dict = torch.load(os.path.join(args.model_dir, 'mnist-vae.tar'), map_location='cpu')
     vae = model_dict["vae"]
-    model_dict = torch.load('mnist-bigan-finetuned-mse.tar', map_location='cpu')
+    model_dict = torch.load(os.path.join(args.model_dir, 'mnist-bigan-finetuned-mse.tar'), map_location='cpu')
     E = model_dict['E']
     G = model_dict['G']
 
@@ -67,19 +70,19 @@ if __name__ == '__main__':
     )
     cf_explainer = CounterfactualExplainer(scaled_clf,
                                            preprocess_function=lambda x_: x_.data)
-    vae_explainer = HingeLossCFExplainer(lambda *a: vae.encoder(*a)[0], vae.decoder,
-                                         clf, 'digit', 512,
-                                         categorical_features=["digit"],
-                                         features_to_ignore=["slant", "intensity", "thickness"])
-    bigan_explainer = HingeLossCFExplainer(E, G,
-                                           clf, 'digit', 512,
-                                           categorical_features=["digit"],
-                                           features_to_ignore=["slant", "intensity", "thickness"])
+    vae_explainer = GradientExplainer(lambda *a: vae.encoder(*a)[0], vae.decoder,
+                                      clf, 'digit', 512,
+                                      categorical_features=["digit"],
+                                      features_to_ignore=["slant", "intensity", "thickness"])
+    bigan_explainer = GradientExplainer(E, G,
+                                        clf, 'digit', 512,
+                                        categorical_features=["digit"],
+                                        features_to_ignore=["slant", "intensity", "thickness"])
 
-    vae_agnostic_explainer = DeepCounterfactualExplainer(lambda *a: vae.encoder(*a)[0], vae.decoder,
-                                                         clf, "digit")
-    bigan_agnostic_explainer = DeepCounterfactualExplainer(E, G,
-                                                           clf, "digit")
+    vae_agnostic_explainer = AgnosticExplainer(lambda *a: vae.encoder(*a)[0], vae.decoder,
+                                               clf, "digit")
+    bigan_agnostic_explainer = AgnosticExplainer(E, G,
+                                                 clf, "digit")
 
     for cls in range(10):
         fig, axs = plt.subplots(3, 7, figsize=(14, 6))

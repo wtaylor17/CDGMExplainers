@@ -9,7 +9,10 @@ from omnixai.explainers.vision import ContrastiveExplainer
 from omnixai.data.image import Image
 
 parser = ArgumentParser()
-parser.add_argument('--data-dir', type=str, default='mnist-displayed-cfs')
+parser.add_argument('--data-dir', type=str,
+                    help='directory with original images and CFs (.npy)')
+parser.add_argument('--model-dir', type=str,
+                    help='directory with classifier .tar file')
 
 
 def gray_to_rgb(g: np.ndarray):
@@ -21,7 +24,7 @@ if __name__ == '__main__':
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    clf = torch.load('mnist_clf.tar', map_location='cpu')['clf']
+    clf = torch.load(os.path.join(args.model_dir, 'mnist_clf.tar'), map_location='cpu')['clf']
 
     class ScaledClf(torch.nn.Module):
         def __init__(self, clf_):

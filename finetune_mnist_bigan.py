@@ -5,22 +5,23 @@ import torch
 from pytorch_msssim import ssim
 import numpy as np
 import seaborn as sns
-from image_scms.training_utils import batchify, batchify_dict
+from imagecfgen_bigan.training_utils import batchify, batchify_dict
 from tqdm import tqdm
 
 parser = ArgumentParser()
 parser.add_argument('--data-dir', type=str,
-                    help='path to folder with .npy files of data',
+                    help='path to folder with .npy files of morpho-mnist data',
                     default='')
 parser.add_argument('--steps', type=int,
-                    help='number of epochs to train the distributions',
+                    help='number of epochs to fine-tune the bigan model',
                     default=20)
 parser.add_argument('--model-file',
                     type=str,
-                    help='file (.tar) for saved cnn models')
+                    help='file (.tar) with saved pretrained BiGAN')
 parser.add_argument('--metric',
                     type=str,
-                    default='mse')
+                    default='mse',
+                    help='reconstruction loss fn for the bigan fine-tuning')
 parser.add_argument('--lr',
                     type=float,
                     default=1e-5)

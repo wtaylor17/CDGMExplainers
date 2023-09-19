@@ -1,9 +1,15 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+from argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument('--metrics-csv', type=str,
+                    help='path to .csv file with oracle scores stored')
 
 if __name__ == '__main__':
-    df = pd.read_csv('morphomnist_cf_oracle_metrics.csv')
+    args = parser.parse_args()
+    df = pd.read_csv(args.metrics_csv)
 
     model_types = ['bigan',
                    'vae',
