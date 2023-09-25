@@ -231,4 +231,4 @@ if __name__ == '__main__':
         metrics['all_rec_vae_agnostic'].append(all_rec(vae_agnostic_cf, cf_label))
 
     print({k: len(v) for k, v in metrics.items()})
-    pd.DataFrame(metrics).to_csv('morphomnist_cf_metrics_newest.csv')
+    pd.DataFrame(metrics).to_csv('morphomnist_cf_metrics.csv')
