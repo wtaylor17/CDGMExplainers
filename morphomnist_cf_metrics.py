@@ -9,6 +9,7 @@ from train_morphomnist_ae import Encoder, Decoder
 
 parser = ArgumentParser()
 parser.add_argument('--data-dir', type=str)
+parser.add_argument('--model-dir', type=str)
 parser.add_argument('--seed', type=int, default=42)
 parser.add_argument('--weight', type=float, default=10.0)
 parser.add_argument('--steps', type=int, default=100)
@@ -61,11 +62,12 @@ if __name__ == '__main__':
     }
     a_test_scaled["digit"] = test_digit
 
-    model_dict = torch.load('mnist-bigan-finetuned-mse.tar', map_location=device)
+    model_dict = torch.load(os.path.join(args.model_dir, 'mnist-bigan-finetuned-mse.tar'),
+                            map_location=device)
     E = model_dict['E']
     G = model_dict['G']
-    vae = torch.load('mnist-vae.tar', map_location=device)['vae']
-    clf = torch.load('mnist_clf.tar', map_location=device)['clf']
+    vae = torch.load(os.path.join(args.model_dir, 'mnist-vae.tar'), map_location=device)['vae']
+    clf = torch.load(os.path.join(args.model_dir, 'mnist_clf.tar'), map_location=device)['clf']
 
     from omnixai.explainers.vision import ContrastiveExplainer, CounterfactualExplainer
     from omnixai.data.image import Image
@@ -104,15 +106,15 @@ if __name__ == '__main__':
     def ae_rec(cf, c):
         if type(cf) is np.ndarray:
             cf = torch.from_numpy(cf).float().to(device)
-        cf_ae = torch.load(f'morphomnist_aes/{c}.tar', map_location=device)
+        cf_ae = torch.load(os.path.join(args.model_dir, 'morphomnist_aes', f'{c}.tar'), map_location=device)
         r1 = cf_ae['G'](cf_ae['E'](cf)).detach()
         return (cf - r1).square().sum().detach().cpu().item()
 
     def all_rec(cf, c):
         if type(cf) is np.ndarray:
             cf = torch.from_numpy(cf).float().to(device)
-        cf_ae = torch.load(f'morphomnist_aes/{c}.tar', map_location=device)
-        all_ae = torch.load(f'morphomnist_aes/all.tar', map_location=device)
+        cf_ae = torch.load(os.path.join(args.model_dir, 'morphomnist_aes', f'{c}.tar'), map_location=device)
+        all_ae = torch.load(os.path.join(args.model_dir, 'morphomnist_aes', 'all.tar'), map_location=device)
         r1 = cf_ae['G'](cf_ae['E'](cf)).detach()
         r2 = all_ae['G'](all_ae['E'](cf)).detach()
         return (r1 - r2).square().sum().detach().cpu().item()
@@ -179,14 +181,12 @@ if __name__ == '__main__':
         cf_label = clf(torch.from_numpy(counterfactual).float().to(device)).argmax(1).item()
         bigan_cf = bigan_explainer.explain(x, a_args, steps=args.steps,
                                            target_class=cf_label,
-                                           train_z=args.train_codes,
                                            lr=args.lr).reshape((1, 1, 28, 28))
         bigan_agnostic_cf = bigan_agnostic.explain(x, a_args, cf_label)[0][0].reshape((1, 1, 28, 28))
         vae_agnostic_cf = vae_agnostic.explain(x, a_args, cf_label)[0][0].reshape((1, 1, 28, 28))
 
         vae_cf = vae_explainer.explain(x, a_args, steps=args.steps,
                                        target_class=cf_label,
-                                       train_z=args.train_codes,
                                        lr=args.lr).reshape((1, 1, 28, 28))
 
         metrics['l1_bigan'].append(bigan_cf.abs().sum().detach().item())
