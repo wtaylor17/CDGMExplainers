@@ -8,3 +8,5 @@ Models can be downloaded [here](https://drive.google.com/drive/folders/1jj5w5vkm
 Precomputed shap values can be downloaded [here](https://drive.google.com/drive/folders/1BTdGfRNIaLj7TQ7wygumB4Uz35q5APAK?usp=sharing) for the `--shap-value-dir` argument to certain scripts.
 
 Precomputed metrics for IM1/IM2/oracle scores can be downloaded [here](https://drive.google.com/drive/folders/1S90PgMwHxJ5eham4JQDOvOumLz87Yf0I?usp=sharing). These are passed as the `--metrics-csv` argument to appropriate scripts.
+
+If any of the above links do not work, please reach out to me at wl647481@dal.ca
