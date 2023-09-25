@@ -10,3 +10,7 @@ Precomputed shap values can be downloaded [here](https://drive.google.com/drive/
 Precomputed metrics for IM1/IM2/oracle scores can be downloaded [here](https://drive.google.com/drive/folders/1S90PgMwHxJ5eham4JQDOvOumLz87Yf0I?usp=sharing). These are passed as the `--metrics-csv` argument to appropriate scripts.
 
 If any of the above links do not work, please reach out to me at wl647481@dal.ca
+
+## Notes on `--data-dir`
+
+Sometimes it expects the directory of precomputed CFs rather than the directory with the whole dataset. The scripts where this is the case are `image_shap_evolution.py`, `mnist_cf_comparisons.py`, and `contrastive_evolution.py`.
