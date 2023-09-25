@@ -9,7 +9,7 @@ def confidence_95(data):
 
 
 parser = ArgumentParser()
-parser.add_argument('--metric-csv', type=str,
+parser.add_argument('--metrics-csv', type=str,
                     help='path to csv with im1/im2/oracle metric information')
 
 
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     second_row_models = model_types[3:]
     second_row_model_names = model_display_names[3:]
 
-    df = pd.read_csv(args.metric_csv)
+    df = pd.read_csv(args.metrics_csv)
 
     im1_max, im2_max = 0, 0
     for c in range(10):
