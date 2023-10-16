@@ -17,6 +17,7 @@ parser.add_argument('--data-dir', type=str,
                     default='mnist-data')
 parser.add_argument('--seed', type=int, default=42)
 parser.add_argument('--samples', type=int, default=4)
+parser.add_argument('--model-dir', type=str)
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -65,10 +66,11 @@ if __name__ == '__main__':
     }
     a_test_scaled["digit"] = test_digit
 
-    vae = torch.load('mnist-vae.tar', map_location=device)['vae']
-    bigan_dict = torch.load('mnist-bigan-finetuned-mse.tar', map_location=device)
+    vae = torch.load(os.path.join(args.model_dir, 'mnist-vae.tar'), map_location=device)['vae']
+    bigan_dict = torch.load(os.path.join(args.model_dir, 'mnist-bigan-finetuned-mse.tar'),
+                            map_location=device)
     E, G = bigan_dict['E'], bigan_dict['G']
-    clf = torch.load('mnist_clf.tar', map_location=device)['clf']
+    clf = torch.load(os.path.join(args.model_dir, 'mnist_clf.tar'), map_location=device)['clf']
 
 
     class VaeShapClf(torch.nn.Module):

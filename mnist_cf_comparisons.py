@@ -211,6 +211,6 @@ if __name__ == '__main__':
             f"Counterfactual explanation comparison (class {cls})",
             fontsize=14)
         plt.subplots_adjust(left=0.075, right=0.95, wspace=0.38)
-        # plt.show()
+        plt.show()
         plt.savefig(f'cf_comparison_figures/{cls}.png', bbox_inches='tight')
         plt.close()
