@@ -20,6 +20,7 @@ def gray_to_rgb(g: np.ndarray):
 
 
 if __name__ == '__main__':
+    os.makedirs('evolution_figures', exist_ok=True)
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
