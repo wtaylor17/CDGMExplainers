@@ -5,7 +5,12 @@ import os
 from argparse import ArgumentParser
 import numpy as np
 import pandas as pd
+import sys
 from train_morphomnist_ae import Encoder, Decoder
+import imagecfgen_bigan
+
+# module name changed for publication
+sys.modules['image_scms'] = imagecfgen_bigan
 
 parser = ArgumentParser()
 parser.add_argument('--data-dir', type=str,

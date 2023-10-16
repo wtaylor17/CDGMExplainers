@@ -1,9 +1,14 @@
 import torch
 from argparse import ArgumentParser
 import os
+import sys
 import shap
 import numpy as np
 from tqdm import tqdm
+import imagecfgen_bigan
+
+# module name changed for publication
+sys.modules['image_scms'] = imagecfgen_bigan
 
 
 parser = ArgumentParser()

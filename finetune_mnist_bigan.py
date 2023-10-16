@@ -1,5 +1,10 @@
 from argparse import ArgumentParser
 import os
+import sys
+import imagecfgen_bigan
+
+# module name changed for publication
+sys.modules['image_scms'] = imagecfgen_bigan
 
 import torch
 from pytorch_msssim import ssim

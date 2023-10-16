@@ -9,6 +9,11 @@ import numpy as np
 from omnixai.explainers.vision import ContrastiveExplainer, CounterfactualExplainer
 from omnixai.data.image import Image
 from explain.cf_example import AgnosticExplainer, GradientExplainer
+import sys
+import imagecfgen_bigan
+
+# module name changed for publication
+sys.modules['image_scms'] = imagecfgen_bigan
 
 parser = ArgumentParser()
 parser.add_argument('--data-dir', type=str,
