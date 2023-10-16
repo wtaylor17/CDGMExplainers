@@ -10,18 +10,20 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser()
 parser.add_argument('--data-dir', type=str)
+parser.add_argument('--cf-dir', type=str)
 parser.add_argument('--output-dir', type=str)
+parser.add_argument('--model-dir', type=str)
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    os.makedirs('image_shap_figures', exist_ok=True)
+    os.makedirs(args.output_dir, exist_ok=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     x_train = torch.from_numpy(
-        np.load(os.path.join('mnist-data', 'mnist-x-train.npy'))
+        np.load(os.path.join(args.data_dir, 'mnist-x-train.npy'))
     ).float().to(device).reshape((-1, 28, 28, 1)) / 255
 
-    clf = torch.load('mnist_clf.tar', map_location='cpu')['clf']
+    clf = torch.load(os.path.join(args.model_dir, 'mnist_clf.tar'), map_location='cpu')['clf']
 
     class ShapClf(torch.nn.Module):
         def forward(self, x_):
@@ -41,7 +43,7 @@ if __name__ == '__main__':
             for cls in range(10):
                 attr_tensors = []
                 for i in range(len(attr_vals)):
-                    cf_dir = os.path.join(args.data_dir, str(cls), attribute)
+                    cf_dir = os.path.join(args.cf_dir, str(cls), attribute)
                     v = attr_vals[i]
                     cf_arr = np.load(os.path.join(cf_dir, f'{model}_{v}.npy'))
                     i += 1
